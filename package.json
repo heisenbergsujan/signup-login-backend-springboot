@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "maildev": "^2.2.1"
+  },
+  "scripts": {
+  "dev": "maildev"
+}
+}
