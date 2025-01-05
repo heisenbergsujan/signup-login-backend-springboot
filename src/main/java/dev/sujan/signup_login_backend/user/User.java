@@ -3,6 +3,7 @@ package dev.sujan.signup_login_backend.user;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,10 +14,10 @@ import java.util.List;
 
 @Setter
 @Getter
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "_user")
 public class User implements UserDetails, Principal {
 
