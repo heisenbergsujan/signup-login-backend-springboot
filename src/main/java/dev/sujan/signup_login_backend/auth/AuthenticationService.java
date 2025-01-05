@@ -2,10 +2,16 @@ package dev.sujan.signup_login_backend.auth;
 
 import dev.sujan.signup_login_backend.email.EmailService;
 import dev.sujan.signup_login_backend.exception.ResourceNotFoundException;
+import dev.sujan.signup_login_backend.exception.TokenNotFoundException;
+import dev.sujan.signup_login_backend.security.JwtService;
 import dev.sujan.signup_login_backend.user.*;
 import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +28,9 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final EmailService emailService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+
 
     @Value("${spring.email.activation-url}")
     private String activationUrl;
@@ -85,5 +94,34 @@ public class AuthenticationService {
             buildToken.append(characters.charAt(randomIndex));
         }
         return buildToken.toString();
+    }
+
+    public String login(LoginRequest loginRequest) {
+        Authentication authenticatedObj= authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
+                )
+        );
+        User user=((User)authenticatedObj.getPrincipal());
+        return jwtService.generateToken(user);
+    }
+
+
+    public void activateAccount(String activationCode) throws MessagingException {
+      Token token=  tokenRepository
+                .findByToken(activationCode)
+                .orElseThrow(()->new TokenNotFoundException("Invalid Token"));
+      if(LocalDateTime.now().isAfter(token.getExpiresAt())){
+          sendValidationEmail(token.getUser());
+          throw new RuntimeException("Activation code expired." +
+                  "A new code has been sent to same email.");
+      }
+      User user=token.getUser();
+      user.setEnabled(true);
+      user.setAccountLocked(false);
+      userRepository.save(user);
+      token.setValidatedAt(LocalDateTime.now());
+      tokenRepository.save(token);
     }
 }

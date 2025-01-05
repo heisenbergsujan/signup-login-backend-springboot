@@ -2,7 +2,6 @@ package dev.sujan.signup_login_backend.auth;
 
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,5 +22,22 @@ public class AuthenticationController {
                 return ResponseEntity.accepted().build();
     }
 
-    
+    @PostMapping("/login")
+    public ResponseEntity<AuthenticationResponse> login(
+            @RequestBody @Valid LoginRequest loginRequest
+    ){
+       String token=authenticationService.login(loginRequest);
+       return ResponseEntity.ok(AuthenticationResponse
+               .builder()
+               .token(token)
+               .build());
+    }
+
+    @GetMapping("/activate-account")
+    public ResponseEntity<?> activateAccount(
+            @RequestParam String activationCode
+    ) throws MessagingException {
+        authenticationService.activateAccount(activationCode);
+        return ResponseEntity.ok("Account Activated!");
+    }
 }

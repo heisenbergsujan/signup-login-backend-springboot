@@ -36,7 +36,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println(request.getRequestURL());
         System.out.println(request.getContextPath());
         System.out.println(request.getServletPath());
-        Set<String> excludedPaths=Set.of("auth/user/login","auth/user/register");
+        Set<String> excludedPaths=Set.of(
+                "auth/user/login",
+                "auth/user/register",
+                "auth/user/activate-account"
+        );
         if(excludedPaths.contains(request.getRequestURI())){
             doFilter(request,response,filterChain);
             return;
